@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>List of Trending Movies</title>
+</head>
+<body style="background-color: #1a1a1a; color: white; font-family: Arial, sans-serif; text-align: center;">
+
+    <header style="background-color: #e50914; padding: 20px;">
+        <h1 style="color: white;">Select Your Mood Here</h1>
+        <div style="display: flex; justify-content: center;">
+            <input type="text" id="search-bar" placeholder="Search Movies" style="background-color: black; color: white; border: none; padding: 10px; border-radius: 5px;">
+            <button id="search-button" style="background-color: #e50914; color: white; border: none; padding: 10px; border-radius: 5px; margin-left: 10px;">Search</button>
+        </div>
+        <div style="margin-top: 10px;">
+            <span style="color: white;">Mood:</span>
+            <button class="mood-button" data-mood="😄">😄 Happy</button>
+            <button class="mood-button" data-mood="😢">😢 Sad</button>
+            <button class="mood-button" data-mood="😆">😆 Excited</button>
+            <button class="mood-button" data-mood="😡">😡 Angry</button>
+            <button class="mood-button" data-mood="😈">😈 Horny</button>
+            <button id="clear-mood" style="background-color: #e50914; color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-left: 10px;">Clear Mood</button>
+        </div>
+    </header>
+
+    <div id="movies-container"></div>
+    <button id="load-more" style="background-color: #e50914; color: white; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; margin-top: 20px;">Load More</button>
+
+    <script>
+        let page = 1;
+        const apiKey = 'ea0ee7f3f0b8f01fb5d68e4bebad9902';
+        const moviesContainer = document.getElementById('movies-container');
+        const loadMoreButton = document.getElementById('load-more');
+        const moodButtons = document.querySelectorAll('.mood-button');
+        const clearMoodButton = document.getElementById('clear-mood');
+        let selectedMood = null;
+
+        async function fetchTrendingMovies() {
+            try {
+                const apiUrl = `https://api.themoviedb.org/3/trending/movie/day?language=en-US&api_key=${apiKey}&page=${page}`;
+                if (selectedMood) {
+                    apiUrl += `&with_keywords=${selectedMood}`;
+                }
+
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch data');
+                }
+
+                const data = await response.json();
+
+                data.results.forEach(movie => {
+                    const movieContainer = document.createElement('div');
+                    movieContainer.classList.add('movie-container');
+
+                    const posterBaseURL = 'https://image.tmdb.org/t/p/w500';
+                    const moviePoster = document.createElement('img');
+                    moviePoster.src = posterBaseURL + movie.poster_path;
+                    moviePoster.alt = movie.title + ' Poster';
+
+                    const movieTitle = document.createElement('h2');
+                    movieTitle.textContent = movie.title;
+                    movieTitle.style.color = '#e50914'; // Red color for movie title
+
+                    movieContainer.appendChild(moviePoster);
+                    movieContainer.appendChild(movieTitle);
+
+                    moviesContainer.appendChild(movieContainer);
+                });
+
+                page++; // Increment the page number for the next request
+
+                if (data.page >= data.total_pages) {
+                    loadMoreButton.style.display = 'none'; // Hide the button if there are no more pages
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // Load more movies when the "Load More" button is clicked
+        loadMoreButton.addEventListener('click', fetchTrendingMovies);
+
+        // Function to redirect to the selected mood HTML page
+        function redirectToMoodPage(mood) {
+            let redirectUrl = ''; // Define the URL to redirect to based on the mood
+
+            switch (mood) {
+                case '😄': // Happy mood
+                    redirectUrl = 'happy.html';
+                    break;
+                case '😢': // Sad mood
+                    redirectUrl = 'sad.html';
+                    break;
+                case '😆': // Excited mood
+                    redirectUrl = 'exited.html';
+                    break;
+                case '😡': // Angry mood
+                    redirectUrl = 'angry.html';
+                    break;
+                case '😈': // Horny mood
+                    redirectUrl = 'horny.html';
+                    break;
+                default:
+                    // Handle other cases or no mood selected
+                    break;
+            }
+
+            if (redirectUrl) {
+                window.location.href = redirectUrl; // Redirect to the selected mood page
+            }
+        }
+
+        // Add click event listeners to mood buttons
+        moodButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const selectedMoodEmoji = button.getAttribute('data-mood');
+                selectedMood = selectedMoodEmoji;
+                redirectToMoodPage(selectedMoodEmoji);
+            });
+        });
+
+        // Clear selected mood when the "Clear Mood" button is clicked
+        clearMoodButton.addEventListener('click', () => {
+            selectedMood = null;
+            fetchTrendingMovies();
+        });
+
+        // Call the fetchTrendingMovies function to make the initial API request when the page loads
+        window.onload = fetchTrendingMovies;
+    </script>
+    <style>
+        .movie-container {
+            display: inline-block;
+            width: 23%;
+            margin: 1%;
+            text-align: center;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        .mood-button {
+            background-color: #000;
+            color: #e50914;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #clear-mood {
+            background-color: #e50914;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-left: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</body>
+</html>
